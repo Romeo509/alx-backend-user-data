@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-This module provides a function to obfuscate sensitive data
-in log messages by replacing specified field values with a
-redaction string, a logging formatter to use it, and a logger
-setup to handle log messages.
+This module provides functions to obfuscate sensitive data in log messages,
+a logging formatter to use it, a logger setup to handle log messages,
+and a function to connect to a MySQL database.
 """
 
 import re
 import logging
+import os
 from typing import List, Tuple
+import mysql.connector
 
 PII_FIELDS: Tuple[str, ...] = ("name", "email", "phone", "ssn", "password")
 
@@ -92,3 +93,38 @@ def get_logger() -> logging.Logger:
     logger.addHandler(stream_handler)
 
     return logger
+
+
+def get_db() -> mysql.connector.connection.MySQLConnection:
+    """
+    Connects to the MySQL database using environment variables for credentials.
+
+    Returns:
+        mysql.connector.connection.MySQLConnection:
+        The database connector object.
+    """
+    username = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
+    password = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
+    host = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
+    db_name = os.getenv("PERSONAL_DATA_DB_NAME")
+
+    # Connect to the database
+    db = mysql.connector.connect(
+        user=username,
+        password=password,
+        host=host,
+        database=db_name
+    )
+
+    return db
+
+
+if __name__ == "__main__":
+    # Example usage
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT COUNT(*) FROM users;")
+    for row in cursor:
+        print(row[0])
+    cursor.close()
+    db.close()
