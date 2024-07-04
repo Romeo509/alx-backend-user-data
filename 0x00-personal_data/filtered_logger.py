@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 This module provides functions to interact with a MySQL database
-using environment variables for secure credentials, obfuscating sensitive data in logs,
+using environment variables for secure credentials,
+obfuscating sensitive data in logs,
 and configuring a logger.
 """
 
@@ -15,7 +16,9 @@ from typing import List, Tuple
 PII_FIELDS: Tuple[str, ...] = ("name", "email", "password", "ssn", "phone")
 
 
-def filter_datum(fields: List[str], redaction: str, message: str, separator: str) -> str:
+def filter_datum(
+    fields: List[str], redaction: str, message: str, separator: str
+) -> str:
     """
     Obfuscates the values of specified fields in a log message.
 
@@ -64,7 +67,9 @@ class RedactingFormatter(logging.Formatter):
         Returns:
             str: The formatted log record with specified fields redacted.
         """
-        record.msg = filter_datum(self.fields, self.REDACTION, super().format(record), self.SEPARATOR)
+        record.msg = filter_datum(
+            self.fields, self.REDACTION, super().format(record), self.SEPARATOR
+        )
         return super().format(record)
 
 
@@ -73,7 +78,8 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     Connects to the MySQL database using environment variables for credentials.
 
     Returns:
-        mysql.connector.connection.MySQLConnection: The database connector object.
+        mysql.connector.connection.MySQLConnection:
+        The database connector object.
     """
     username = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
     password = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
