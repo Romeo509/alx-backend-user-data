@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """
 This module provides functions to interact with a MySQL database
+using environment variables for secure credentials, obfuscating sensitive data in logs,
 and configuring a logger.
 """
 
-import os
-import re
 import logging
 import mysql.connector
+import os
+import re
 from typing import List, Tuple
 
-PII_FIELDS: Tuple[str, ...] = ("name", "email", "phone", "ssn", "password")
+
+PII_FIELDS: Tuple[str, ...] = ("name", "email", "password", "ssn", "phone")
 
 
-def filter_datum(fields: List[str], redaction: str,
-                 message: str, separator: str) -> str:
+def filter_datum(fields: List[str], redaction: str, message: str, separator: str) -> str:
     """
     Obfuscates the values of specified fields in a log message.
 
@@ -30,14 +31,10 @@ def filter_datum(fields: List[str], redaction: str,
     Returns:
         str: The log message with specified field values obfuscated.
     """
-    pattern = '|'.join([
-        f'{field}=[^{separator}]*' for field in fields
-    ])
-    return re.sub(
-        pattern,
-        lambda m: m.group().split('=')[0] + '=' + redaction,
-        message
-    )
+    for field in fields:
+        message = re.sub(f'{field}=(.*?){separator}',
+                         f'{field}={redaction}{separator}', message)
+    return message
 
 
 class RedactingFormatter(logging.Formatter):
@@ -67,10 +64,31 @@ class RedactingFormatter(logging.Formatter):
         Returns:
             str: The formatted log record with specified fields redacted.
         """
-        record.msg = filter_datum(
-            self.fields, self.REDACTION, record.msg, self.SEPARATOR
-        )
+        record.msg = filter_datum(self.fields, self.REDACTION, super().format(record), self.SEPARATOR)
         return super().format(record)
+
+
+def get_db() -> mysql.connector.connection.MySQLConnection:
+    """
+    Connects to the MySQL database using environment variables for credentials.
+
+    Returns:
+        mysql.connector.connection.MySQLConnection: The database connector object.
+    """
+    username = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
+    password = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
+    host = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
+    db_name = os.getenv("PERSONAL_DATA_DB_NAME")
+
+    # Connect to the database
+    db = mysql.connector.connect(
+        user=username,
+        password=password,
+        host=host,
+        database=db_name
+    )
+
+    return db
 
 
 def get_logger() -> logging.Logger:
@@ -92,29 +110,6 @@ def get_logger() -> logging.Logger:
     logger.addHandler(stream_handler)
 
     return logger
-
-
-def get_db():
-    """
-    Connects to the MySQL database using environment variables for credentials.
-
-    Returns:
-        mysql.connector.connection.MySQLConnection: The database connector
-    """
-    username = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
-    password = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
-    host = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
-    db_name = os.getenv("PERSONAL_DATA_DB_NAME")
-
-    # Connect to the database
-    db = mysql.connector.connect(
-        user=username,
-        password=password,
-        host=host,
-        database=db_name
-    )
-
-    return db
 
 
 if __name__ == "__main__":
