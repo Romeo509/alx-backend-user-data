@@ -119,12 +119,28 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     return db
 
 
-if __name__ == "__main__":
-    # Example usage
+def main() -> None:
+    """
+    Obtain a database connection using get_db and retrieve
+    all rows in the users table.
+    Display each row under a filtered format.
+    """
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT COUNT(*) FROM users;")
+    cursor.execute("SELECT * FROM users;")
+
+    headers = [field[0] for field in cursor.description]
+    logger = get_logger()
+
     for row in cursor:
-        print(row[0])
+        info_answer = ''
+        for field, value in zip(headers, row):
+            info_answer += f'{field}={value}; '
+        logger.info(info_answer)
+
     cursor.close()
     db.close()
+
+
+if __name__ == "__main__":
+    main()
