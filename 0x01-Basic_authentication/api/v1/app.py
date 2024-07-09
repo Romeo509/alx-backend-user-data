@@ -4,8 +4,8 @@ Route module for the API
 """
 from os import getenv
 from api.v1.views import app_views
-from flask import Flask, jsonify
-from flask_cors import (CORS, cross_origin)
+from flask import Flask, jsonify, abort, request
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
