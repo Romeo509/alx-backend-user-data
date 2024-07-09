@@ -5,13 +5,27 @@ from flask import request
 
 class Auth:
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """ Check if authentication is required for the given path """
-        return False  # Placeholder logic, to be implemented later
+        """ Checks if authentication is required for a given path """
+        if path is None:
+            return True
+
+        if not excluded_paths:
+            return True
+
+        # Normalize path by removing trailing slash
+        normalized_path = path.rstrip('/')
+
+        for ex_path in excluded_paths:
+            normalized_ex_path = ex_path.rstrip('/')
+            if normalized_path == normalized_ex_path:
+                return False
+
+        return True
 
     def authorization_header(self, request=None) -> str:
-        """ Returns the value of the Authorization header """
-        return None  # Placeholder logic, to be implemented later
+        """ Placeholder for authorization header handling """
+        return None
 
-    def current_user(self, request=None) -> type(None):
-        """ Returns the current user based on the request """
-        return None  # Placeholder logic, to be implemented later
+    def current_user(self, request=None):
+        """ Placeholder for current user handling """
+        return None
