@@ -3,7 +3,6 @@
 Route module for the API
 """
 from os import getenv
-from typing import Any
 from flask import Flask, jsonify, abort, request
 from flask_cors import CORS
 from api.v1.views import app_views
@@ -13,24 +12,25 @@ app.register_blueprint(app_views)
 CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 
 auth = None
-if getenv("AUTH_TYPE") == "auth":
+auth_type = getenv("AUTH_TYPE")
+
+if auth_type == "basic_auth":
+    from api.v1.auth.basic_auth import BasicAuth
+    auth = BasicAuth()
+elif auth_type == "auth":
     from api.v1.auth.auth import Auth
     auth = Auth()
 
 
 @app.before_request
-def before_request() -> None:
-    """
-    Method to handle actions before each request
-    """
+def before_request():
+    """ Handle before_request for each request """
     if auth is None:
         return
 
-    excluded_paths = [
-        '/api/v1/status/',
-        '/api/v1/unauthorized/',
-        '/api/v1/forbidden/'
-    ]
+    excluded_paths = (
+        ['/api/v1/status/', '/api/v1/unauthorized/', '/api/v1/forbidden/']
+    )
     if not auth.require_auth(request.path, excluded_paths):
         return
 
@@ -42,18 +42,14 @@ def before_request() -> None:
 
 
 @app.errorhandler(401)
-def unauthorized(error: Any) -> Any:
-    """
-    Error handler for 401 Unauthorized
-    """
+def unauthorized(error):
+    """ Unauthorized handler """
     return jsonify({"error": "Unauthorized"}), 401
 
 
 @app.errorhandler(403)
-def forbidden(error: Any) -> Any:
-    """
-    Error handler for 403 Forbidden
-    """
+def forbidden(error):
+    """ Forbidden handler """
     return jsonify({"error": "Forbidden"}), 403
 
 
