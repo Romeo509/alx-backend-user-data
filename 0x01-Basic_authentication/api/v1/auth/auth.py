@@ -14,17 +14,17 @@ class Auth:
         """ Checks if authentication is required for a given path """
         if path is None:
             return True
-        
+
         if not excluded_paths:
             return True
-        
+
         normalized_path = path.rstrip('/')
-        
+
         for ex_path in excluded_paths:
             normalized_ex_path = ex_path.rstrip('/')
             if normalized_path == normalized_ex_path:
                 return False
-        
+
         return True
 
     def current_user(self, request=None):
