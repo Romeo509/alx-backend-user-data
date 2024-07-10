@@ -43,17 +43,25 @@ class BasicAuth(Auth):
         except Exception:
             return None
 
-    def extract_user_credentials(self, decoded_header: str) -> tuple[str, str]:
+    def extract_user_credentials(self,
+                                 decoded_base64_authorization_header: str
+                                 ) -> (str, str):
         """
         Extracts user email and password from the Base64 decoded value
         """
-        if decoded_header is None or not isinstance(decoded_header, str):
+
+        if decoded_base64_authorization_header is None:
             return None, None
-        try:
-            email, password = decoded_header.split(':', 1)
-        except ValueError:
+
+        if not isinstance(decoded_base64_authorization_header, str):
             return None, None
-        return email, password
+
+        if ':' not in decoded_base64_authorization_header:
+            return None, None
+
+        credentials = decoded_base64_authorization_header.split(':', 1)
+
+        return credentials[0], credentials[1]
 
     def user_object_from_credentials(
         self, user_email: str, user_pwd: str
