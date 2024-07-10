@@ -1,30 +1,51 @@
 #!/usr/bin/env python3
+"""
+Module for handling API authentication
+"""
 from typing import List
 from flask import request
 
 
 class Auth:
-    """documentation"""
+    """
+    Class for managing API authentication
+    """
+
     def authorization_header(self, request=None) -> str:
-        """ Returns the Authorization header value from the request """
+        """
+        Returns the Authorization header value from the request
+
+        Args:
+            request (flask.Request): The Flask request object
+
+        Returns:
+            str: The value of the Authorization header, or None if not present
+        """
         if request is None or 'Authorization' not in request.headers:
             return None
         return request.headers['Authorization']
 
-    def require_auth(self, path: str, excluded_paths: list) -> bool:
-        """ Checks if authentication is required for a given path """
+    def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
+        """
+        Checks if authentication is required for a given path
+
+        Args:
+            path (str): The path to check
+            excluded_paths (List[str]): A list of paths that
+            do not require authentication
+
+        Returns:
+            bool: True if authentication is required, False otherwise
+        """
         if path is None:
-            """documentation"""
             return True
 
         if not excluded_paths:
-            """documentation"""
             return True
 
         normalized_path = path.rstrip('/')
 
         for ex_path in excluded_paths:
-            """documentation"""
             normalized_ex_path = ex_path.rstrip('/')
             if normalized_path == normalized_ex_path:
                 return False
@@ -32,5 +53,13 @@ class Auth:
         return True
 
     def current_user(self, request=None):
-        """ Placeholder for current user handling """
+        """
+        Placeholder for current user handling
+
+        Args:
+            request (flask.Request): The Flask request object
+
+        Returns:
+            None: Placeholder return value
+        """
         return None
