@@ -47,7 +47,12 @@ class Auth:
 
         for ex_path in excluded_paths:
             normalized_ex_path = ex_path.rstrip('/')
-            if normalized_path == normalized_ex_path:
+            if '*' in normalized_ex_path:
+                # If ex_path ends with '*', match the prefix
+                prefix = normalized_ex_path.rstrip('*')
+                if normalized_path.startswith(prefix):
+                    return False
+            elif normalized_path == normalized_ex_path:
                 return False
 
         return True
