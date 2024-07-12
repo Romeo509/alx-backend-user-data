@@ -1,70 +1,48 @@
 #!/usr/bin/env python3
+""" Authentication Module
 """
-Module for handling API authentication
-"""
-from typing import List
 from flask import request
+from typing import List, TypeVar
+from os import getenv
 
 
 class Auth:
-    """
-    Class for managing API authentication
-    """
-
-    def authorization_header(self, request=None) -> str:
-        """
-        Returns the Authorization header value from the request
-
-        Args:
-            request (flask.Request): The Flask request object
-
-        Returns:
-            str: The value of the Authorization header, or None if not present
-        """
-        if request is None or 'Authorization' not in request.headers:
-            return None
-        return request.headers['Authorization']
+    """ Manages API authentication """
 
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """
-        Checks if authentication is required for a given path
-
-        Args:
-            path (str): The path to check
-            excluded_paths (List[str]): A list of paths that
-            do not require authentication
-
-        Returns:
-            bool: True if authentication is required, False otherwise
-        """
-        if path is None:
+        """ Validate if a specific path requires authentication """
+        if not path or not excluded_paths:
             return True
 
-        if not excluded_paths:
-            return True
+        if path[-1] != '/':
+            path += '/'
 
-        normalized_path = path.rstrip('/')
-
-        for ex_path in excluded_paths:
-            normalized_ex_path = ex_path.rstrip('/')
-            if '*' in normalized_ex_path:
-                # If ex_path ends with '*', match the prefix
-                prefix = normalized_ex_path.rstrip('*')
-                if normalized_path.startswith(prefix):
+        for exc_path in excluded_paths:
+            if exc_path.endswith('*'):
+                if path.startswith(exc_path[:-1]):
                     return False
-            elif normalized_path == normalized_ex_path:
+            elif path == exc_path:
                 return False
 
         return True
 
-    def current_user(self, request=None):
-        """
-        Placeholder for current user handling
+    def authorization_header(self, request=None) -> str:
+        """ Get the Authorization header from the request """
+        if request is None:
+            return None
+        return request.headers.get("Authorization")
 
-        Args:
-            request (flask.Request): The Flask request object
-
-        Returns:
-            None: Placeholder return value
-        """
+    def current_user(self, request=None) -> TypeVar('User'):
+        """ Return the current user (None by default) """
         return None
+
+    def session_cookie(self, request=None):
+        """ Retrieve the value of the session cookie """
+        if request is None:
+            return None
+
+        session_name = getenv("SESSION_NAME")
+        if not session_name:
+            return None
+
+        return request.cookies.get(session_name)
