@@ -2,7 +2,9 @@
 """
 Flask app to handle authentication routes
 """
-from flask import Flask, request, jsonify, abort, make_response, redirect, url_for
+from flask import (
+    Flask, request, jsonify, abort, make_response, redirect, url_for
+)
 from auth import Auth
 
 app = Flask(__name__)
